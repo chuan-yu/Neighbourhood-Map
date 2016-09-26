@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neighborhood Map</title>
+    <meta name="viewport" content="initial-scale=10.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3">
+                <ul id="place_list" class="list-unstyled" data-bind="foreach: placeMarkers">
+                    <li data-bind="text: $data[0].name, click: $root.selectItem, css: { selected: $data === $root.currentItem() }"></li>
+                </ul>
+            </div>
+            <div class="col-sm-9 map">
+                <div id="map" data-bind="googlemap: {center: center, placeMarkers: placeMarkers}"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/init.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl7zpZGKnjQf7X8okU6y_6EFndntrFsR4&libraries=places&callback=init" async defer></script>
+    <script type='text/javascript' src='js/knockout-3.4.0.js'></script>
+    <script type='text/javascript' src='js/app.js'></script>
+</body>
+</html>

@@ -11,8 +11,9 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-3">
-                <ul id="place_list" class="list-unstyled" data-bind="foreach: placeMarkers">
+            <div class="col-sm-3 place-list-section">
+                    <input class="form-control" placeholder="search..." type="search" data-bind="value: query, valueUpdate: 'keyup'" autocomplete="off">
+                <ul id="place_list" class="list-unstyled place-list" data-bind="foreach: placeMarkers">
                     <li data-bind="text: $data[0].name, click: $root.selectItem, css: { selected: $data === $root.currentItem() }"></li>
                 </ul>
             </div>
@@ -22,10 +23,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="error_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Error</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="error-message"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary btn-refresh">Refresh</button>
+                </div>
+        </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div id="info-window-container" data-bind="if: currentItem().length === 2">
+        <div id="info-window-content">
+            <h5 data-bind="text: currentItem()[0].name"></h5>
+            <p data-bind="text: currentItem()[0].vicinity"></p>
+            <p data-bind="text: current4Square"></p>
+        </div>
+    </div>
+
     <script src="js/init.js"></script>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl7zpZGKnjQf7X8okU6y_6EFndntrFsR4&libraries=places&callback=init" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl7zpZGKnjQf7X8okU6y_6EFndntrFsR4&libraries=places&callback=init" onerror="error('Google Maps')" async defer></script>
     <script type='text/javascript' src='js/knockout-3.4.0.js'></script>
     <script type='text/javascript' src='js/app.js'></script>
 </body>

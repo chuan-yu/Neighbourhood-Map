@@ -18,3 +18,11 @@ li {
     background-color: gray;
     color: white;
 }
+
+.place-list-section {
+    padding-top: 10px;
+}
+
+.place-list {
+    margin-top: 10px;
+}

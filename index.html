@@ -13,12 +13,12 @@
         <div class="row">
             <div class="col-sm-3 place-list-section">
                     <input class="form-control" placeholder="search..." type="search" data-bind="value: query, valueUpdate: 'keyup'" autocomplete="off">
-                <ul id="place_list" class="list-unstyled place-list" data-bind="foreach: placeMarkers">
-                    <li data-bind="text: $data[0].name, click: $root.selectItem, css: { selected: $data === $root.currentItem() }"></li>
+                <ul id="place_list" class="list-unstyled place-list" data-bind="foreach: placesShown">
+                    <li data-bind="text: $data.name, click: $root.selectItem, css: { selected: $data === $root.currentItem() }"></li>
                 </ul>
             </div>
             <div class="col-sm-9 map">
-                <div id="map" data-bind="googlemap: {center: center, placeMarkers: placeMarkers}"></div>
+                <div id="map" data-bind="googlemap: {center: center}"></div>
             </div>
         </div>
     </div>
@@ -41,11 +41,13 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    <div id="info-window-container" data-bind="if: currentItem().length === 2">
-        <div id="info-window-content">
-            <h5 data-bind="text: currentItem()[0].name"></h5>
-            <p data-bind="text: currentItem()[0].vicinity"></p>
-            <p data-bind="text: current4Square"></p>
+    <div id="info-window-container" style="display:none">
+        <div id="info-window-content" data-bind="if: currentItem">
+            <h5 data-bind="text: currentItem.name"></h5>
+            <p data-bind="text: currentItem.vicinity"></p>
+            <div data-bind="if: currentItem.fourSquare">
+                <p><strong>Four Square Check-in Count: </strong><span data-bind="text: currentItem.fourSquare.stats.checkinCount"></span></p>
+            </div>
         </div>
     </div>
 

@@ -75,14 +75,13 @@ function MapViewModel() {
     // to get more details from 3rd-party APIs and mark the places
     // on the map.
     self.getPlaceDetails = function() {
-        for (var i = 0; i < self.allPlaces().length; i++) {
-            var place = self.allPlaces()[i];
+        self.allPlaces().forEach(function(place){
             self.get4SquareDetails(place);
             place.marker = self.createMarker(place);
             self.placesWithDetails.push(place);
-        }
+        });
 
-        // Initially, all places are to be shown
+        //Initially, all places are to be shown
         self.placesShown(self.placesWithDetails());
     };
 

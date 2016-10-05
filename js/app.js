@@ -1,22 +1,64 @@
+'use strict';
+ko.bindingHandlers.modal = {
+    update: function(element, valueAccessor) {
+        var errorMessage = ko.unwrap(valueAccessor());
+        if (errorMessage) {
+             $(element).modal('show');
+         } else {
+            $(element).modal('hide');
+         }
 
-// Custom binding for Google Maps
-ko.bindingHandlers.googlemap = {
-    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-        // Create the map
-        var value = valueAccessor();
-        var center = ko.unwrap(value.center);
-        var options = {
-            center: center,
-            zoom: 16
-        };
-        var map = new google.maps.Map(element, options);
-        viewModel.map = map;
+    }
+};
 
+function MapViewModel() {
+    //Data
+
+    var self = this;
+
+    self.currentInfoWindow = null;
+    // place objects from Google Places service
+    self.allPlaces = ko.observableArray([]);
+    // places to be shown on the UI
+    self.placesShown = ko.observableArray([]);
+    // Place currently selected
+    self.currentItem = ko.observable();
+    self.query = ko.observable('');
+    self.infoWindow = new google.maps.InfoWindow();
+    self.hasError = ko.observable(false);
+    self.errorMessage = ko.observable('');
+    // place objects with additional details from other APIs
+    self.placesWithDetails = ko.computed(function(){
+        var placesWithDetails = [];
+        for (var i = 0; i < self.allPlaces().length; i++) {
+            var place = self.allPlaces()[i];
+            self.get4SquareDetails(place);
+            place.marker = self.createMarker(place);
+            placesWithDetails.push(place);
+        }
+        self.placesShown(placesWithDetails);
+        return placesWithDetails;
+    }, this);
+
+
+    //Operations
+
+    // Initialize the app
+    self.init = function() {
+        if (typeof google === 'undefined') {
+            self.errorMessage("Google Maps are not available");
+        } else {
+            self.getPlaces();
+        }
+    }
+
+    // Get places using Google Places service
+    self.getPlaces = function() {
         // Get restaurants within 2000 metres of the centre
         var request = {
             location: center,
             radius: '2000',
-            types: ['restaurant']
+            types: ['food']
         };
         var service = new google.maps.places.PlacesService(map);
         service.nearbySearch(request, searchCallback);
@@ -24,33 +66,13 @@ ko.bindingHandlers.googlemap = {
         function searchCallback(results, status) {
             if (status == google.maps.places.PlacesServiceStatus.OK) {
                 // Save the places results in the viewModel property
-                viewModel.allPlaces(results);
+                self.allPlaces(results);
+            } else {
+                self.errorMessage('Google Places service is not available. '
+                    + 'You may not be able to see locations.');
             }
         }
     }
-};
-
-function MapViewModel() {
-
-    //Data
-
-    var self = this;
-
-    self.currentInfoWindow = null;
-    self.map = null;
-    // place objects from Google Places service
-    self.allPlaces = ko.observableArray([]);
-    // place objects with additional details from other APIs
-    self.placesWithDetails = ko.observableArray([]);
-    // places to be shown on the UI
-    self.placesShown = ko.observableArray([]);
-    // The center of the map
-    self.center = ko.observable(new google.maps.LatLng(1.300527, 103.902021));
-    // Place currently selected
-    self.currentItem = ko.observable();
-    self.query = ko.observable("");
-
-    //Operations
 
     // Using places information from Google Places service
     // to get more details from 3rd-party APIs and mark the places
@@ -72,12 +94,13 @@ function MapViewModel() {
         var location = place.geometry.location;
         var marker = new google.maps.Marker({
             position: location,
-            map: self.map
+            map: map
         });
 
         // Add click listener to marker
         marker.addListener('click', function(){
             self.selectItem(place);
+            map.panTo(this.getPosition());
         });
         return marker;
     };
@@ -87,21 +110,22 @@ function MapViewModel() {
         var location = place.geometry.location;
         var latLng = location.lat() + ',' + location.lng();
         var name = place.name;
-        var url = "https://api.foursquare.com/v2/venues/search?" +
-            "ll=" + latLng +
-            "&query=" + name +
-            "&near=Singapore" +
-            "&intent=checkin" +
-            "&limit=1" +
-            "&v=20160928" +
-            "&client_id=5TAIH3KK4S33N0OIYGFJA3MSAIR2GF05ZVNFP3CYDPFWZQEI" +
-            "&client_secret=5H1U14GEG1Y1EU1RGBDGUDZN52GPYVHTK0F5URCXRTHWVVHS";
+        var url = 'https://api.foursquare.com/v2/venues/search?' +
+            'll=' + latLng +
+            '&query=' + name +
+            '&near=Singapore' +
+            '&intent=checkin' +
+            '&limit=1' +
+            '&v=20160928' +
+            '&client_id=5TAIH3KK4S33N0OIYGFJA3MSAIR2GF05ZVNFP3CYDPFWZQEI' +
+            '&client_secret=5H1U14GEG1Y1EU1RGBDGUDZN52GPYVHTK0F5URCXRTHWVVHS';
 
         $.getJSON(url, function(data) {
             place.fourSquare = data.response.venues[0];
         }).fail(function() {
-            console.log("Four Square information cannot be loaded.");
-        })
+            self.errorMessage('Four Square is not reachable. ' +
+                'You may not be able to see Four Square Popularity');
+        });
 
     };
 
@@ -111,81 +135,77 @@ function MapViewModel() {
             // Stop current marker's animation
             setMarkerAnimation(self.currentItem().marker, null);
             // close current place's InfoWindow
-            self.closeCurrentInfoWindow();
+            self.infoWindow.close();
         }
         // Set the new currentItem
         self.currentItem(item);
         // Set bounce animation for new currentItem
         setMarkerAnimation(self.currentItem().marker, google.maps.Animation.BOUNCE);
         // Create or open InfoWindow for new currentItem
-        self.createInfoWindow();
+        self.openInfoWindow();
     };
 
-    // Function to create infoWindow for selected place
-    self.createInfoWindow = function() {
-
-        // If infoWindow already exists, open it. Otherwise create one.
-        if (self.currentItem().infoWindow) {
-            self.currentItem().infoWindow.open(self.map, self.currentItem().marker);
-        } else {
+    // Function to open infoWindow for selected place
+    self.openInfoWindow = function() {
             var placeInfoStr = '<h5>' + self.currentItem().name + '</h5>' +
                 '<p>' + self.currentItem().vicinity + '</p>';
-            var fourSquareStr = "";
+            var fourSquareStr = '';
 
             if (typeof self.currentItem().fourSquare != 'undefined') {
                 fourSquareStr = '<p>' +
                 '<strong>Four Sqaure Popularity: </strong>' +
                 self.currentItem().fourSquare.stats.checkinsCount + ' check-ins' +
                 '</p>';
+            } else {
+                fourSquareStr = '<p>' +
+                '<strong>Four Sqaure Popularity: </strong>' +
+                'Popularity data not available'
+                '</p>';
             }
 
             var contentString = '<div id="content">' +
                 placeInfoStr + fourSquareStr +
                 '</div>';
-            var infoWindow = new google.maps.InfoWindow({
-                content: contentString
-            });
-            infoWindow.open(self.map, self.currentItem().marker)
-            self.currentItem().infoWindow = infoWindow;
-        }
+
+            self.infoWindow.setContent(contentString);
+            self.infoWindow.open(map, self.currentItem().marker);
     };
 
+
+
     // The function to handle search
-    self.search = function(q) {
+    self.search = function() {
+        console.log('test');
         // Clear all markers from the map
-        self.setMapOnAll(self.placesShown(), null);
+        self.setMarkerVisibility(self.placesShown(), false);
         // Clear all places shown
         self.placesShown([]);
 
         // Add places from the search results to the places to be shown array
         for (var x in self.placesWithDetails()) {
-            if (self.placesWithDetails()[x].name.toLowerCase().indexOf(q.toLowerCase()) >= 0) {
+            if (self.placesWithDetails()[x].name.toLowerCase().indexOf(self.query().toLowerCase()) >= 0) {
                 self.placesShown.push(self.placesWithDetails()[x]);
             }
         }
 
-        // Show markers
-        self.setMapOnAll(self.placesShown(), self.map);
-    };
+        //Show markers
+        self.setMarkerVisibility(self.placesShown(), true);
+    }
 
 
     // Set map for markers. Used to show and hide markers on the map
-    self.setMapOnAll = function(places, map) {
+    self.setMarkerVisibility = function(places, isVisible) {
         for (var i = 0;  i < places.length; i++) {
-            places[i].marker.setMap(map);
+            places[i].marker.setVisible(isVisible);
         }
-    }
+    };
 
-    self.closeCurrentInfoWindow = function() {
-        if (self.currentItem()) {
-            self.currentItem().infoWindow.close();
-        }
+    // Function to refresh the page
+    self.reload = function() {
+        location.reload();
     }
 
     //Subscriptions
-
-    // When allPlaces are changed, call getPlaceDetails function
-    self.allPlaces.subscribe(self.getPlaceDetails);
 
     // When query is changed, call search function
     self.query.subscribe(self.search);
@@ -194,5 +214,9 @@ function MapViewModel() {
     function setMarkerAnimation(marker, animation) {
         marker.setAnimation(animation);
     }
+
+
+    self.init();
+
 
 }

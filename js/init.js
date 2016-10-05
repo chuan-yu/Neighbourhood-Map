@@ -1,14 +1,19 @@
+'use strict';
+var map;
+var center;
 // Start KnockOutJS bindings
 function init() {
-    ko.applyBindings(new MapViewModel)
-};
+    center = new google.maps.LatLng(1.300527, 103.902021);
+    var options = {
+        center: center,
+        zoom: 16
+    };
+    map = new google.maps.Map(document.getElementById('map'), options);
+    ko.applyBindings(new MapViewModel);
+}
 
-function error(serviceName) {
-    $('#error_modal').modal('show');
-    $('.error-message').text("Couldn't load " +
-        serviceName + ". " +
-        "Please check your network settings.");
-    $('.btn-refresh').click(function() {
-        location.reload();
-    });
+function googleError() {
+    // In case of error, apply bindings anyway
+    // Errors are handled in the View Model
+    ko.applyBindings(new MapViewModel);
 }

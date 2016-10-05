@@ -45,12 +45,8 @@ function MapViewModel() {
 
     // Initialize the app
     self.init = function() {
-        if (typeof google === 'undefined') {
-            self.errorMessage("Google Maps are not available");
-        } else {
-            self.getPlaces();
-        }
-    }
+        self.getPlaces();
+    };
 
     // Get places using Google Places service
     self.getPlaces = function() {
@@ -68,11 +64,11 @@ function MapViewModel() {
                 // Save the places results in the viewModel property
                 self.allPlaces(results);
             } else {
-                self.errorMessage('Google Places service is not available. '
-                    + 'You may not be able to see locations.');
+                self.errorMessage('Google Places service is not available. '+
+                    'You may not be able to see locations.');
             }
         }
-    }
+    };
 
     // Using places information from Google Places service
     // to get more details from 3rd-party APIs and mark the places
@@ -159,7 +155,7 @@ function MapViewModel() {
             } else {
                 fourSquareStr = '<p>' +
                 '<strong>Four Sqaure Popularity: </strong>' +
-                'Popularity data not available'
+                'Popularity data not available' +
                 '</p>';
             }
 
@@ -175,7 +171,6 @@ function MapViewModel() {
 
     // The function to handle search
     self.search = function() {
-        console.log('test');
         // Clear all markers from the map
         self.setMarkerVisibility(self.placesShown(), false);
         // Clear all places shown
@@ -190,7 +185,7 @@ function MapViewModel() {
 
         //Show markers
         self.setMarkerVisibility(self.placesShown(), true);
-    }
+    };
 
 
     // Set map for markers. Used to show and hide markers on the map
@@ -203,7 +198,7 @@ function MapViewModel() {
     // Function to refresh the page
     self.reload = function() {
         location.reload();
-    }
+    };
 
     //Subscriptions
 
@@ -217,6 +212,5 @@ function MapViewModel() {
 
 
     self.init();
-
 
 }

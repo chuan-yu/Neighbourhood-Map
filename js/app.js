@@ -46,6 +46,7 @@ function MapViewModel() {
     // Initialize the app
     self.init = function() {
         self.getPlaces();
+        self.addInfoWindowListener();
     };
 
     // Get places using Google Places service
@@ -167,12 +168,19 @@ function MapViewModel() {
             self.infoWindow.open(map, self.currentItem().marker);
     };
 
+    self.addInfoWindowListener = function() {
+        google.maps.event.addListener(self.infoWindow, 'closeclick', function(){
+            setMarkerAnimation(self.currentItem().marker, null);
+        })
+    };
 
 
     // The function to handle search
     self.search = function() {
         // Clear all markers from the map
         self.setMarkerVisibility(self.placesShown(), false);
+        // Close opened InfoWindow
+        self.infoWindow.close();
         // Clear all places shown
         self.placesShown([]);
 

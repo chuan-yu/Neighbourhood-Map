@@ -1,13 +1,21 @@
 # Neighbourhood Map Project
 
 ## Introduction
-This is a Javascript web app to show restaurants on a neighbourhood map. The app displays a list of restaurants in the neighbourhood and mark their locations on Google Map. The details of the restaurant are displayed on the InfoWindow of the map.
+This is a Javascript web app to show restaurants on a neighbourhood map. The main functionalities are:
 
-## API Used
+- Display restaurants in the neighbourhood in a list view and Google Map view
+- Details of the restaurants are displayed on the Google Maps InfoWindow
+- Live search
+- Data are loaded asynchorously
 
-1. Google Maps
-2. Google Places
-3. Four Square
+
+## Technologies Used
+
+- JQuery
+- Ajax
+- Google Maps API
+- Google Places API
+- Four Square API
 
 ## Steps to Run the Programme
 Open index.html using a web browser.

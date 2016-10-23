@@ -12,6 +12,7 @@ This is a Javascript web app to show restaurants on a neighbourhood map. The mai
 ## Technologies Used
 
 - JQuery
+- KnockoutJS Framework
 - Ajax
 - Google Maps API
 - Google Places API
